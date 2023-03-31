@@ -1,5 +1,7 @@
 <launch>
 
+  <include file="$(find param_env)/launch/structure_map.launch"/>
+
   <!-- Args go here -->
   <arg name="plan_duration" default="1.0"/>
   <arg name="map_wait_duration" default="1.0"/>
@@ -14,9 +16,5 @@
 
 
   </node>
-
-
-  <include file="$(find param_env)/launch/structure_map.launch"/>
-
 
 </launch>

@@ -7,11 +7,15 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <nav_msgs/Path.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <geometry_msgs/PoseStamped.h>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+
+ros::Publisher plan_pub;
 
 class RRTStarPlanner {
 public:
@@ -21,6 +25,7 @@ public:
     double _map_wait;
     double plan_duration_;
     double obs_constraint_;
+    std::string map_frame_id;
     sensor_msgs::PointCloud2::ConstPtr global_msg = nullptr;
     
 
@@ -176,21 +181,86 @@ public:
 
         // Attempt to solve the problem within 1 second of planning time
         ob::PlannerStatus solved = ss.solve(plan_duration_);
-
+ 
         if (solved) {
             ROS_INFO("Solution found!");
-            // ss.simplifySolution();
-            ss.getSolutionPath().print(std::cout);
+            
+            // Prune generated path by removing unneccessary waypoints
+            ss.simplifySolution();
+
+            og::PathGeometric & path = ss.getSolutionPath();
+            path.print(std::cout);
+            
+            ros::Rate loop_rate(10);
+            while (ros::ok()) {
+                publishPlan(path);
+
+                // ROS_INFO("Path published!");
+
+                // Call any pending callbacks
+                ros::spinOnce();
+
+                // Sleep to maintain loop rate
+                loop_rate.sleep();
+            }
+            
         }
         else
             ROS_INFO("No solution found");
     }
 
+    void publishPlan(og::PathGeometric & path) {
+        std::vector<ob::State*> path_states = path.getStates();
+
+        // Create a new path message
+        nav_msgs::Path plan_msg;
+
+        // Set the header of the path message
+        plan_msg.header.frame_id = "odom";
+        plan_msg.header.stamp = ros::Time::now();
+
+        // Add each state to the path message
+        for (const auto& state : path_states)
+        {
+            // Create a new pose stamped message for the state
+            geometry_msgs::PoseStamped pose_stamped;
+
+            // Set the header of the pose stamped message
+            pose_stamped.header.frame_id = map_frame_id;
+            pose_stamped.header.stamp = ros::Time::now();
+
+            // Set the position of the pose stamped message to the state's X, Y, and Z values
+            pose_stamped.pose.position.x = state->as<ob::SE3StateSpace::StateType>()->getX();
+            pose_stamped.pose.position.y = state->as<ob::SE3StateSpace::StateType>()->getY();
+            pose_stamped.pose.position.z = state->as<ob::SE3StateSpace::StateType>()->getZ();;
+
+            // Set the orientation of the pose stamped message to the state's orientation
+            Eigen::Quaterniond q(state->as<ob::SE3StateSpace::StateType>()->rotation().x, 
+                                state->as<ob::SE3StateSpace::StateType>()->rotation().y, 
+                                state->as<ob::SE3StateSpace::StateType>()->rotation().z,
+                                state->as<ob::SE3StateSpace::StateType>()->rotation().w);
+
+            pose_stamped.pose.orientation.x = q.x();
+            pose_stamped.pose.orientation.y = q.y();
+            pose_stamped.pose.orientation.z = q.z();
+            pose_stamped.pose.orientation.w = q.w();
+
+
+            // Add the pose stamped message to the path message
+            plan_msg.poses.push_back(pose_stamped);
+        }
+
+        plan_pub.publish(plan_msg);
+
+    }
+
 };
 
 int main (int argc, char** argv){
-    ros::init(argc, argv, "planner_node");
+    ros::init(argc, argv, "rrt_plan_node");
     ros::NodeHandle nh("~");
+    // Create a ROS publisher for the plan
+    plan_pub = nh.advertise<nav_msgs::Path>("planner/rrt_plan", 1);
     RRTStarPlanner planner_obj(nh);
     planner_obj.startPlanning();
     return 0;
