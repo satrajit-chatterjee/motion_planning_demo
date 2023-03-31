@@ -4,9 +4,10 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/octree/octree.h>
 #include <ompl/base/Planner.h>
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/SE3StateSpace.h"
+#include <ompl/base/SpaceInformation.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
 namespace ob = ompl::base;
@@ -50,7 +51,7 @@ public:
 
         // Wait for the first point cloud message to arrive
         while (!this->has_map_) {
-            std::cout << "Waiting for map generation..." << std::endl;
+            ROS_INFO("Waiting for map generation...");
             ros::spinOnce();
             ros::Duration(_map_wait).sleep();
         }
@@ -81,19 +82,66 @@ public:
         // Create a simple setup with the state space
         og::SimpleSetup ss(space);
 
-        // Set the start state
+        // Set a random start state
         ob::ScopedState<ob::SE3StateSpace> start(space);
-        start->setXYZ(-10.0, -10.0, 0);
-        // start.random();
-        // bool start_validity = isStateValid(start, octree_);
-        
-        ob::ScopedState<ob::SE3StateSpace> goal(space);
-        goal->setXYZ(20.0, 20.0, 5.0);
+        bool start_valid = false;
+        ROS_INFO("Setting random start position...");
+        while (!start_valid) {
+            start.random();
+            float x = start->getX();
+            float y = start->getY();
+            float z = start->getZ();
 
-        // Setting both start and goal states to identity orientation
-        // TODO: randomize both start and goal position and orientation
-        start->as<ob::SO3StateSpace::StateType>(1)->setIdentity();
-        goal->as<ob::SO3StateSpace::StateType>(1)->setIdentity();
+            // Check if the point is in collision with any obstacle in the point cloud
+            pcl::PointXYZ point(x, y, z);
+            std::vector<int> indices;
+            std::vector<float> sqr_dists;
+            octree_.nearestKSearch(point, 1, indices, sqr_dists);
+            if (sqr_dists[0] > obs_constraint_) {
+                start_valid = true;
+            }
+        }
+
+        ROS_INFO("The random start state is::");
+        ROS_INFO("X::%f::Y::%f::Z::%f", start->getX(), start->getY(), start->getZ());
+        // bool start_validity = isStateValid(start, octree_);
+
+        // Set a andom goal state
+        ob::ScopedState<ob::SE3StateSpace> goal(space);
+        bool goal_valid = false;
+        ROS_INFO("Setting random goal position...");
+        while (!goal_valid) {
+            goal.random();
+            float x = goal->getX();
+            float y = goal->getY();
+            float z = goal->getZ();
+
+            // Check if the point is in collision with any obstacle in the point cloud
+            pcl::PointXYZ point(x, y, z);
+            std::vector<int> indices;
+            std::vector<float> sqr_dists;
+            octree_.nearestKSearch(point, 1, indices, sqr_dists);
+            if (sqr_dists[0] > obs_constraint_) {
+                goal_valid = true;
+            }
+        }
+
+        ROS_INFO("The random goal state is::");
+        ROS_INFO("X::%f::Y::%f::Z::%f", goal->getX(), goal->getY(), goal->getZ());
+
+        // Set both start and goal states to random orientations
+        double start_q1 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q2 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q3 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q4 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        start->as<ob::SO3StateSpace::StateType>(1)->setAxisAngle(start_q1, start_q2, start_q3, start_q4);
+
+        double goal_q1 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double goal_q2 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double goal_q3 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double goal_q4 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        goal->as<ob::SO3StateSpace::StateType>(1)->setAxisAngle(goal_q1, goal_q2, goal_q3, goal_q4);
+
         ss.setStartAndGoalStates(start, goal);
 
         // Set the planner
@@ -119,21 +167,31 @@ public:
             return true;
         });
 
+        // Create a path length optimization objective
+        ob::OptimizationObjectivePtr obj = std::make_shared<ob::PathLengthOptimizationObjective>(ss.getSpaceInformation());
+
+        // Set the optimization objective for the planner
+        ss.setOptimizationObjective(obj);
+
+
         // Attempt to solve the problem within 1 second of planning time
         ob::PlannerStatus solved = ss.solve(plan_duration_);
 
         if (solved) {
-            std::cout << ("Solution found!");
-            ss.simplifySolution();
+            ROS_INFO("Solution found!");
+            // ss.simplifySolution();
             ss.getSolutionPath().print(std::cout);
         }
         else
-            std::cout << "No solution found" << std::endl;
+            ROS_INFO("No solution found");
     }
 
 };
 
 int main (int argc, char** argv){
-        std::cout << "all OK";
-        return 0;
+    ros::init(argc, argv, "planner_node");
+    ros::NodeHandle nh("~");
+    RRTStarPlanner planner_obj(nh);
+    planner_obj.startPlanning();
+    return 0;
 }
