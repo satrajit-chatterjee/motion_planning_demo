@@ -1,0 +1,22 @@
+<launch>
+
+  <!-- Args go here -->
+  <arg name="plan_duration" default="1.0"/>
+  <arg name="map_wait_duration" default="1.0"/>
+  <arg name="obs_constraint" default="0.01"/>
+
+  <node pkg ="ompl_rrtstar" name ="rrt_star_planner" type ="rrt_star_planner" output = "screen">    
+
+    <param name="planner/plan_duration"     value="$(arg plan_duration)" />
+    <param name="planner/map_wait_duration"     value="$(arg map_wait_duration)" />
+    <param name="planner/obs_constraint"     value="$(arg obs_constraint)" />
+
+
+
+  </node>
+
+
+  <include file="$(find param_env)/launch/structure_map.launch"/>
+
+
+</launch>
