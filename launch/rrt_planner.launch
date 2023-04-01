@@ -17,4 +17,6 @@
 
   </node>
 
+   <include file="$(find kr_mav_launch)/launch/example_control.launch"/>
+
 </launch>

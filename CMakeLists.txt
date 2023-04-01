@@ -11,12 +11,11 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   geometry_msgs
+  message_generation
 )
 
 find_package(ompl REQUIRED)
 find_package(PCL REQUIRED)
-
-catkin_package()
 
 include_directories(
   include
@@ -26,6 +25,18 @@ include_directories(
   /usr/include/pcl-1.8
   /usr/include/eigen3
 )
+
+add_service_files(
+  FILES
+  ReplanTrigger.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+catkin_package()
 
 add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY)
 
