@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/point_cloud.h>
@@ -25,10 +27,11 @@ sensor_msgs::PointCloud2::ConstPtr global_msg = nullptr;
 bool has_map_ = false;
 
 bool first_plan = true;
-ompl::base::SE3StateSpace::StateType* global_state = nullptr;
 bool has_odom_ = false;
 
 bool start_replan_service = false;
+
+std::vector<double> new_odom = {};
 
 class RRTStarPlanner {
 public:
@@ -51,6 +54,7 @@ public:
     }
 
     void odomCallback(const nav_msgs::Odometry::ConstPtr &msg) {
+
         // Extract position and orientation from the message
         double x = msg->pose.pose.position.x;
         double y = msg->pose.pose.position.y;
@@ -61,19 +65,10 @@ public:
         double qz = msg->pose.pose.orientation.z;
         double qw = msg->pose.pose.orientation.w;
 
-        // Create a new state with the extracted position and orientation
-        ompl::base::SE3StateSpace::StateType* state = new ompl::base::SE3StateSpace::StateType();
-    
-        state->setXYZ(x, y, z);
-    
-        state->rotation().x = qx;
-        state->rotation().y = qy;
-        state->rotation().z = qz;
-        state->rotation().w = qw;
+        new_odom = {x, y, z, qx, qy, qz, qw};
 
-        // Update global state and set the new data flag
-        global_state = state;
         has_odom_ = true;
+        
         ROS_INFO("Found new start state!");
     }
 
@@ -103,7 +98,7 @@ public:
         octree_.addPointsFromInputCloud();
 
         // Create an OMPL state space for 3D planning
-         ob::StateSpacePtr space(new ob::SE3StateSpace());
+        ob::StateSpacePtr space(new ob::SE3StateSpace());
 
         // Set the bounds of the state space to the bounding box of the point cloud
         Eigen::Vector4f min_pt, max_pt;
@@ -164,7 +159,11 @@ public:
                 ros::spinOnce();
                 ros::Duration(_map_wait).sleep();
             }
-            start = global_state;
+            start->setXYZ(new_odom[0], new_odom[1], new_odom[2]);
+            start->rotation().x = new_odom[3];
+            start->rotation().y = new_odom[4];
+            start->rotation().z = new_odom[5];
+            start->rotation().w = new_odom[6];
             has_odom_ = false;
         }
         
@@ -242,7 +241,10 @@ public:
             og::PathGeometric & path = ss.getSolutionPath();
             path.print(std::cout);
             
+            publishPlan(path);
+            
             ros::Rate loop_rate(10);
+
             while (ros::ok()) {
                 publishPlan(path);
         
