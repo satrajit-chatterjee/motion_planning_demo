@@ -26,7 +26,6 @@ ros::Subscriber pointcloud_sub_;
 sensor_msgs::PointCloud2::ConstPtr global_msg = nullptr;
 bool has_map_ = false;
 
-bool first_plan = true;
 bool has_odom_ = false;
 
 bool start_replan_service = false;
@@ -117,55 +116,36 @@ public:
 
         ob::ScopedState<ob::SE3StateSpace> start(space);
         
-        if(first_plan) {
-            // Set a random start state
-            bool start_valid = false;
-            ROS_INFO("Setting random start position...");
-            while (!start_valid) {
-                start.random();
-                float x = start->getX();
-                float y = start->getY();
-                float z = start->getZ();
+        
+        // Set a random start state
+        bool start_valid = false;
+        ROS_INFO("Setting random start position...");
+        while (!start_valid) {
+            start.random();
+            float x = start->getX();
+            float y = start->getY();
+            float z = start->getZ();
 
-                // Check if the point is in collision with any obstacle in the point cloud
-                pcl::PointXYZ point(x, y, z);
-                std::vector<int> indices;
-                std::vector<float> sqr_dists;
-                octree_.nearestKSearch(point, 1, indices, sqr_dists);
-                if (sqr_dists[0] > obs_constraint_) {
-                    start_valid = true;
-                }
+            // Check if the point is in collision with any obstacle in the point cloud
+            pcl::PointXYZ point(x, y, z);
+            std::vector<int> indices;
+            std::vector<float> sqr_dists;
+            octree_.nearestKSearch(point, 1, indices, sqr_dists);
+            if (sqr_dists[0] > obs_constraint_) {
+                start_valid = true;
             }
-
-            ROS_INFO("The random start state is::");
-            ROS_INFO("X::%f::Y::%f::Z::%f", start->getX(), start->getY(), start->getZ());
-
-            // Set both start and goal states to random orientations
-            double start_q1 = ompl::RNG().uniformReal(0, 2 * M_PI);
-            double start_q2 = ompl::RNG().uniformReal(0, 2 * M_PI);
-            double start_q3 = ompl::RNG().uniformReal(0, 2 * M_PI);
-            double start_q4 = ompl::RNG().uniformReal(0, 2 * M_PI);
-            start->as<ob::SO3StateSpace::StateType>(1)->setAxisAngle(start_q1, start_q2, start_q3, start_q4);
-            
-            first_plan = false;
         }
-        else {
-            // Subscribe to current odom and set as start position
-            ros::Subscriber plan_sub_;
-            plan_sub_ = nh_.subscribe("/quadrotor/odom", 1, &RRTStarPlanner::odomCallback, this);
-            
-            while (!has_odom_) {
-                ROS_INFO("Waiting to obtain present odometry...");
-                ros::spinOnce();
-                ros::Duration(_map_wait).sleep();
-            }
-            start->setXYZ(new_odom[0], new_odom[1], new_odom[2]);
-            start->rotation().x = new_odom[3];
-            start->rotation().y = new_odom[4];
-            start->rotation().z = new_odom[5];
-            start->rotation().w = new_odom[6];
-            has_odom_ = false;
-        }
+
+        ROS_INFO("The random start state is::");
+        ROS_INFO("X::%f::Y::%f::Z::%f", start->getX(), start->getY(), start->getZ());
+
+        // Set both start and goal states to random orientations
+        double start_q1 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q2 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q3 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        double start_q4 = ompl::RNG().uniformReal(0, 2 * M_PI);
+        start->as<ob::SO3StateSpace::StateType>(1)->setAxisAngle(start_q1, start_q2, start_q3, start_q4);
+        
         
         // Set a random goal state
         ob::ScopedState<ob::SE3StateSpace> goal(space);
