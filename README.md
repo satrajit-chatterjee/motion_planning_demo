@@ -36,9 +36,24 @@ method you apply and how you encode the obstacle avoidance constraints.
 
 ### 4. Results
 
+Attached are visualizations of the target milestones. All visualizations are in RViz.
+
 - [x] Write a ROS node that subscribes to a randomly generated global map.
 
+<a href="url"><img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/map.png" height=50% width=50% ></a>
+
 - [x] Generate a global optimal collision-free trajectory.
+
+<div style="display:flex;">
+  <img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/path-blue-1.png" width=40% height=40%>
+  <img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/path-blue-2.png" width=40% height=40%>
+</div>
+<div style="display:flex;">
+  <img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/path-green-1.png" width=40% height=40%>
+  <img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/path-green-2.png" width=40% height=40%>
+</div>
+
+Above are screenshots of generated trajectories visualized in blue and green.
 
 - [x] Implement controller to execute generated trajectory.
 
