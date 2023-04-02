@@ -1,5 +1,18 @@
 # Motion Planning Demo
 
+## Table of Contents
+
+1. [Problem Description](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#1-problem-description)
+2. [Target Milestone](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#2-target-milestone)
+3. [Submitted Repositories](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#3-submitted-repositories)
+4. [Results](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#4-results)
+5. [Algorithm - RRT*](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#5-algorithm---rrt)
+6. [Obstacle Avoidance Constraints](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#6-obstacle-avoidance-constraints)
+7. [Map Generation](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#7-map-generation)
+8. [Trajectory Generation Approach](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#8-trajectory-generation-approach)
+9. [Controller Implementation](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#9-controller-implementation)
+10. [Setup Instructions](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#10-setup-instructions)
+
 ### 1. Problem Description
 
 The problem statement can be found in the Google doc provided [here](https://docs.google.com/document/d/1vWrb-9foCaU-DPw5z-dWApgHkU9c-bylmYKEbX3m5To/edit#heading=h.zur4j868i0). 
@@ -115,6 +128,12 @@ The simplifySolution function works by trying to eliminate unnecessary waypoints
 path and checking whether the path is still valid under given constraints.
 
 ### 9. Controller Implementation
+
+The controller manager was implemented in the sub-package named ["sim-manager"](https://github.com/satrajit-chatterjee/kr_mav_control/tree/master/sim_manager) inside the forked controller repository that can be found [here](https://github.com/satrajit-chatterjee/kr_mav_control). In here the sim_manager.py script manages the trajectory execution with a quadrotor. 
+
+Inside here, a separate thread is started that continuously [publishes the odometry](https://github.com/satrajit-chatterjee/kr_mav_control/blob/master/sim_manager/scripts/sim_manager.py#L137) of the quadrotor. In another thread a ["manager"](https://github.com/satrajit-chatterjee/kr_mav_control/blob/master/sim_manager/scripts/sim_manager.py#L152) function is called which starts the motors of the quadrotor, commands it to take off, and then commands it to follow the generated path that the sim_manager node has subscribed to. 
+
+The [plan_callback](https://github.com/satrajit-chatterjee/kr_mav_control/blob/master/sim_manager/scripts/sim_manager.py#L44) for the plan subscriber fetches the published optimal trajectory and generates intermediate waypoints along the trajectory by discretizing the path at a user-defined resolution. 
 
 ### 10. Setup Instructions
 
