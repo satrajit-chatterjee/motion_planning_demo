@@ -57,6 +57,8 @@ Above are screenshots of generated trajectories visualized in blue and green.
 
 - [x] Implement controller to execute generated trajectory.
 
+<img src="https://github.com/satrajit-chatterjee/motion_planning_demo/blob/master/assets/video.gif" width=50% height=50%>
+
 ### 5. Algorithm - RRT*
 The RRT* (Rapidly-exploring Random Tree Star) algorithm is a path planning algorithm that is guaranteed to converge to globally optimal solution as the 
 number of iterations approaches infinity. It constructs a tree of states, starting from the initial state, and incrementally growing the tree by adding new states
