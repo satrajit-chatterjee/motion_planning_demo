@@ -2,16 +2,16 @@
 
 ## Table of Contents
 
-1. [Problem Description](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#1-problem-description)
-2. [Target Milestone](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#2-target-milestone)
-3. [Submitted Repositories](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#3-submitted-repositories)
-4. [Results](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#4-results)
-5. [Algorithm - RRT*](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#5-algorithm---rrt)
-6. [Obstacle Avoidance Constraints](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#6-obstacle-avoidance-constraints)
-7. [Map Generation](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#7-map-generation)
-8. [Trajectory Generation Approach](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#8-trajectory-generation-approach)
-9. [Controller Implementation](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#9-controller-implementation)
-10. [Setup Instructions](https://github.com/satrajit-chatterjee/motion_planning_demo/edit/master/README.md#10-setup-instructions)
+1. [Problem Description](https://github.com/satrajit-chatterjee/motion_planning_demo#1-problem-description)
+2. [Target Milestone](https://github.com/satrajit-chatterjee/motion_planning_demo#2-target-milestone)
+3. [Submitted Repositories](https://github.com/satrajit-chatterjee/motion_planning_demo#3-submitted-repositories)
+4. [Results](https://github.com/satrajit-chatterjee/motion_planning_demo#4-results)
+5. [Algorithm - RRT*](https://github.com/satrajit-chatterjee/motion_planning_demo#5-algorithm---rrt)
+6. [Obstacle Avoidance Constraints](https://github.com/satrajit-chatterjee/motion_planning_demo#6-obstacle-avoidance-constraints)
+7. [Map Generation](https://github.com/satrajit-chatterjee/motion_planning_demo#7-map-generation)
+8. [Trajectory Generation Approach](https://github.com/satrajit-chatterjee/motion_planning_demo#8-trajectory-generation-approach)
+9. [Controller Implementation](https://github.com/satrajit-chatterjee/motion_planning_demo#9-controller-implementation)
+10. [Setup Instructions](https://github.com/satrajit-chatterjee/motion_planning_demo#10-setup-instructions)
 
 ### 1. Problem Description
 
